@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="order by dede58.com" />
+		<title>老司机商城</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="stylesheet" type="text/css" href="css/category.css" />
+		<script type="text/javascript" src="js/jquery1.9.1.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.js"></script>
+	</head>
+
+	<body onload="loadHead()">
+
+		<!-- start banner_x -->
+		<div class="banner_x center">
+			<a href="./index.html" target="_blank">
+				<div class="logo fl"></div>
+			</a>
+			<div class="nav fl">
+
+			</div>
+			<div class="search fr">
+				<form action="" method="post">
+					<div class="text fl">
+						<input type="text" class="shuru" placeholder="请输入商品名称进行搜索" id="q" v-model="q">
+					</div>
+					<div class="submit fl">
+						<input type="button" class="sousuo" value="搜索" id="search" @click="search" />
+					</div>
+					<div class="clear"></div>
+				</form>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<!-- end banner_x -->
+
+		<!--start category-->
+		<div class="containor category">
+			<div style="background-image: url(image/banner2.jpg);width: 1108px;height: 950px;background-repeat: no-repeat;background-size: 100% 100%;">
+				<div class="nav_left">
+					<ul>
+						<li v-for="category in categories" :data-id="category.id"> <span>{{category.name}}</span></li>
+					</ul>
+				</div>
+				<div class="nav_right">
+					<!---->
+					<div v-for="category in categories" class="sub hide" :data-id="category.id">
+						<!---->
+						<dl v-for="secondLevelCategory in category.childNodes">
+							<dt><a>{{secondLevelCategory.name}}<i> &gt;</i></a> </dt>
+							<dd>
+								<!---->
+								<a v-for="thirdLevelCategory in secondLevelCategory.childNodes" @click="search(thirdLevelCategory.id)">{{thirdLevelCategory.name}}</a>
+							</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<br><br><br><br><br>
+		<!--end category-->
+
+		<div class="danpin center newest-products">
+			<div class="biaoti center">最新商品</div>
+			<div class="main center">
+				<div class="mingxing fl" v-for="product in products">
+					<div class="sub_mingxing">
+						<a :href="'goods-info.html?pid='+product.id" target="_self"><img :src="imageServerPath+product.image" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a :href="'goods-info.html?pid='+product.id" target="_self">{{product.title}}</a>
+					</div>
+					<div class="youhui" v-html="product.sellPoint"></div>
+					<div class="jiage">{{product.price}}元</div>
+				</div>
+
+				<div class="clear"></div>
+			</div>
+		</div>
+
+		<div class="danpin center hotest-products">
+			<div class="biaoti center">热门商品</div>
+			<div class="main center">
+				<div class="mingxing fl" v-for="product in products">
+					<div class="sub_mingxing">
+						<a :href="'goods-info.html?pid='+product.id" target="_self"><img :src="imageServerPath+product.image" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a :href="'goods-info.html?pid='+product.id" target="_self">{{product.title}}</a>
+					</div>
+					<div class="youhui" v-html="product.sellPoint"></div>
+					<div class="jiage">{{product.price}}元</div>
+				</div>
+
+				<div class="clear"></div>
+			</div>
+		</div>
+
+		<div class="danpin center history-products">
+			<div class="biaoti center">我的足迹</div>
+			<div class="main center">
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="mingxing fl">
+					<div class="sub_mingxing">
+						<a href="#" target="_self"><img src="products/1356546.jpg" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a href="#" target="_self">商品名称</a>
+					</div>
+					<div class="youhui">商品卖点</div>
+					<div class="jiage">1200元起</div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+	</body>
+	<script>
+		layui.use("layer", function(layer) {
+			var searchVm = new Vue({
+				el: ".search",
+				data: {
+					q: ""
+				},
+				methods: {
+					search: function() {
+						location.href="goods-list.html?q="+this.q;
+					}
+				}
+			});
+
+			//分类
+			var categoryVm = new Vue({
+				el: ".category",
+				data: {
+					categories: []
+				},
+				//用来侦听属性的变化
+				watch: {
+					categories: function() {
+						//用来在表示在属性变化引起的DOM变化
+						//将页面渲染完毕后要做的操作
+						this.$nextTick(function() {
+							$('.containor').on('mouseenter', function() {
+								$(".nav_right").removeClass('hide');
+							}).on('mouseleave', function() {
+								$(".nav_right").addClass('hide');
+								$(".sub").addClass('hide');
+							}).on('mouseenter', 'li', function(e) {
+								var li_data = $(this).attr('data-id');
+								$(".sub").addClass('hide');
+								$('.sub[data-id="' + li_data + '"]').removeClass('hide');
+							})
+						});
+					}
+				},
+				methods: {
+					search: function(cid) {
+						location.href="goods-list.html?cid="+cid;
+					}
+				}
+			});
+
+			$.ajax({
+				type: "get",
+				url: serverPath + "/category/all",
+				success: function(res) {
+					if(res.success) {
+						var categories = res.data;
+						categoryVm.categories = categories;
+					} else {
+						layer.alert("加载分类信息失败");
+					}
+				}
+			});
+
+			var newestProductsVm = new Vue({
+				el: ".newest-products",
+				data: {
+					products: [],
+					imageServerPath: imageServerPath
+				}
+			});
+			var hotestProductsVm = new Vue({
+				el: ".hotest-products",
+				data: {
+					products: [],
+					imageServerPath: imageServerPath
+				}
+			});
+
+
+			//加载首页数据
+			$.ajax({
+				method: "get",
+				url: serverPath + "/index/data",
+				success: function(res) {
+					if(!res.success) {
+						layer.alert("加载首页数据失败!");
+					} else {
+						var data = res.data;
+						newestProductsVm.products = data.newestProducts;
+						hotestProductsVm.products = data.hotestProducts;
+					}
+				}
+			});
+		});
+	</script>
+
+</html>

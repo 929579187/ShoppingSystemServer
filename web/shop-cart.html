@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="order by dede58.com" />
+		<title>老司机商城-我的购物车</title>
+		<link rel="stylesheet" type="text/css" href="./css/style.css">
+		<link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css" />
+		<script type="text/javascript" src="js/jquery1.9.1.js"></script>
+		<script type="text/javascript" src="js/category.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.js"></script>
+
+	</head>
+
+	<body onload="loadHead()">
+		<div class="xiantiao"></div>
+		<div class="gwcxqbj cart-info">
+			<div class="gwcxd center">
+				<div class="top2 center">
+					<div class="sub_top fl">
+						<input type="checkbox" value="quanxuan" class="quanxuan" @click="allClick"/>全选
+					</div>
+					<div class="sub_top fl">商品名称</div>
+					<div class="sub_top fl">单价</div>
+					<div class="sub_top fl">数量</div>
+					<div class="sub_top fl">小计</div>
+					<div class="sub_top fr">操作</div>
+					<div class="clear"></div>
+				</div>
+				<div class="content2 center" v-for="cartItem in cartItems">
+					<div class="sub_content fl ">
+						<input type="checkbox" class="quanxuan" :value="cartItem.pid"/>
+					</div>
+					<div class="sub_content fl"><img :src="imageServerPath+cartItem.image" width="100"></div>
+					<div class="sub_content fl ft20" style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="cartItem.productName">{{cartItem.productName}}</div>
+					<div class="sub_content fl ">{{cartItem.price}}元</div>
+					<div class="sub_content fl">
+						<input class="shuliang" type="number" :value="cartItem.count" step="1" min="1" @change="changeCount(cartItem.pid,$event)">
+					</div>
+					<div class="sub_content fl">{{cartItem.price*cartItem.count}}元</div>
+					<div class="sub_content fl">
+						<a href="javascript:void(0);">×</a>
+					</div>
+					<div class="clear"></div>
+				</div>
+
+			</div>
+			<div class="jiesuandan mt20 center">
+				<div class="tishi fl ml20">
+					<ul>
+						<li>
+							<a href="index.html">继续购物</a>
+						</li>
+						<li>
+							<a href="index.html">清空购物车</a>
+						</li>
+						<li>|</li>
+						<li>共<span>{{cartItems.length}}</span>件商品，已选择<span>{{count}}</span>件</li>
+						<div class="clear"></div>
+					</ul>
+				</div>
+				<div class="jiesuan fr">
+					<div class="jiesuanjiage fl">合计（不含运费）：<span>{{totalPrice}}元</span></div>
+					<div class="jsanniu fr"><input class="jsan" type="submit" name="jiesuan" value="去结算" /></div>
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</div>
+
+		</div>
+	</body>
+	<script>
+
+		layui.use("layer", function(layer) {
+			
+			$.get(serverPath + "/user/loginUser", function(res) {
+				if(!res.success) {
+					location.href = "login.html";
+				}
+			});
+
+			var shopCartVm=new Vue({
+				el:".cart-info",
+				data:{
+					cartItems:[],
+					imageServerPath:imageServerPath,
+					count:0,
+					pids:[]
+				},
+				//计算属性
+				computed:{
+					//计算总价
+					totalPrice:function(){
+						var totalPrice=0;
+						var cartItems=this.cartItems;
+
+						$.each(cartItems, function(index,cartItem) {
+							var price=cartItem.price;
+							var count=cartItem.count;
+							totalPrice+=price*count;
+						});
+						return totalPrice;
+					}
+				},
+
+				methods:{
+					//改变数量的操作
+					changeCount:function(pid,e){
+						var count=e.target.value;
+						//将新的数量更新到cartItems响应式属性中，使得数组发生变化
+						//然后所有与之关联的属性也会一起发生变化
+						var cartItems=this.cartItems;
+						$.each(cartItems,function(index,cartItem){
+							if(cartItem.pid==pid){
+								cartItem.count=count;
+							}
+						});
+						this.cartItems=cartItems;
+						console.log(this.pids)
+						//对Redis中的数量进行改变
+						$.ajax({
+							type:"post",
+							url:serverPath+"/cart/changeCount",
+							data:{
+								pid:pid,
+								count:count
+							},
+							success:function(res){
+								if(!res.success){
+									layer.alert("修改数量失败");
+								}
+							}
+						});
+					},
+					allClick:function (e) {
+					var target = $(e.target);
+					if (target.prop("checked")){
+						// target.addClass("active")
+						$(".quanxuan").addClass("active").prop("checked",true)
+					}else {
+						target.removeClass("active")
+						$(".quanxuan").addClass("active").prop("checked",false)
+					}
+					}
+
+				}
+			});
+
+			$(document).on("click",".quanxuan",function () {
+				var a = 0;
+				var item = document.getElementsByClassName("quanxuan")
+				var first = document.getElementsByClassName("active")
+				var firstInput;
+				for (let i = 0; i <first.length ; i++) {
+					firstInput=first[i];
+				}
+				// console.log($("input:first"))
+				for (let i = 0; i <item.length ; i++) {
+					if (item[i].checked&&item[i]!==firstInput){
+						a++;
+					}
+				}
+				shopCartVm.count=a;
+				// console.log(shopCartVm.count)
+
+			})
+
+			// var jieSuanVm = new Vue({
+			// 	el:".jiesuandan",
+			// 	data:{
+			//
+			// 	},
+			// 	methods:{
+			// 		a:function () {
+			// 			console.log(count)
+			// 		}
+			// 	}
+			// })
+
+
+
+			//获取购物车中的数据
+			$.ajax({
+				type: "get",
+				url: serverPath + "/cart/get",
+				success: function(res) {
+					if(!res.success){
+						layer.alert(res.errMsg);
+					}else{
+						shopCartVm.cartItems=res.data;
+					}
+				}
+			});
+		});
+	</script>
+
+</html>

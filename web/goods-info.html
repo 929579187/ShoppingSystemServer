@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="order by dede58.com" />
+		<title>老司机商城-商品详情</title>
+		<link rel="stylesheet" type="text/css" href="./css/style.css">
+		<script type="text/javascript" src="js/jquery1.9.1.js"></script>
+		<script type="text/javascript" src="js/category.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.js"></script>
+
+		<style>
+			.minus,
+			.plus {
+				width: 30px;
+				height: 30px;
+				background-color: #ff6700;
+				color: white;
+				outline: none;
+				display: inline-block;
+				line-height: 30px;
+				text-align: center;
+				cursor: pointer;
+			}
+			
+			.minus~input {
+				width: 30px;
+				height: 24px;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<!-- xiangqing -->
+		<div id="goods-info">
+			<div class="xiangqing">
+				<div class="neirong w">
+					<div class="xiaomi6 fl">{{product.title}}</div>
+					<div class="clear"></div>
+				</div>
+			</div>
+
+			<div class="jieshao mt20 w">
+				<div class="left fl"><img :src="imageServerPath+product.image" style="width: 100%;height: 100%;"></div>
+				<div class="right fr">
+					<div class="h3 ml20 mt20">{{product.title}}</div>
+					<div class="jianjie mr40 ml20 mt10" v-html="product.sellPoint"></div>
+					<div class="jiage ml20 mt10" style="font-size: 40px;">{{product.price}}元</div>
+					<div class="ft20 ml20 mt20" style="display: inline-block;">选择数量</div>
+					<div class="xzbb ml20 mt10" style="display: inline-block;">
+						<div class="minus" type="button" @click="minus">-</div>
+						<input name="amount" type="text" readonly="readonly" v-model="count">
+						<div class="plus" type="button" @click="plus">+</div>
+					</div>
+					<div class="ft20 ml20 mt20">小计</div>
+					<div class="jiage ml20 mt10" style="font-size:30px;color:red;font-weight:bold;">{{product.price*count}}元</div>
+					<div class="xiadan ml20 mt20">
+						<input class="jrgwc" type="button" name="jrgwc" value="加入购物车" @click="addCart" />
+					</div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+	</body>
+	<script>
+		//获取商品的id
+		var pid = getUrlParams().pid;
+		layui.use("layer", function(layer) {
+			
+			var productVm=new Vue({
+				el:"#goods-info",
+				data:{
+					product:{},
+					count:1,
+					imageServerPath:imageServerPath
+				},
+				methods:{
+					minus:function(){
+						var curCount=this.count;
+						if(curCount!=1){
+							curCount--;
+						}
+						this.count=curCount;
+					},
+					plus:function(){
+						var curCount=this.count;
+						curCount++;
+						this.count=curCount;
+					},
+					addCart:function(){
+						//思路1.先跳转到购物车页面，然后在购物车页面添加数据并返回当前购物车中的详细信息
+						//location.href="shop-cart.html?pid="+pid+"&count="+this.count;
+						var count=this.count;
+						//思路2.直接在这里将购物车数据保存成功以后再跳转到购物车页面然后展示购物车详情
+						$.ajax({
+							type:"post",
+							url:serverPath+"/cart/add",
+							data:{
+								pid:pid,
+								count:count
+							},
+							success:function(res){
+								if(res.success){
+									location.href="shop-cart.html"
+								}else{
+									layer.alert(res.errMsg);
+								}
+							}
+						});
+					}
+				}
+			});
+			
+			
+			//根据pid到服务端加载当前的商品信息
+			$.get(serverPath + "/product/getById?pid=" + pid, function(res) {
+				if(res.success) {
+					productVm.product=res.data;
+				} else {
+					layer.alert(res.errMsg);
+					location.href="index.html";
+				}
+			});
+		});
+	</script>
+
+</html>

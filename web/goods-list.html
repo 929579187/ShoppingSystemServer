@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="order by dede58.com" />
+		<title>老司机商城-商品列表</title>
+		<link rel="stylesheet" type="text/css" href="./css/style.css">
+		<link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css" />
+		<script type="text/javascript" src="js/jquery1.9.1.js"></script>
+		<script type="text/javascript" src="js/category.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.js"></script>
+	</head>
+
+	<body>
+
+		<!-- start danpin -->
+		<div class="danpin center page">
+			<div class="biaoti center">老司机商品</div>
+			<div class="main center" style="height: auto;">
+				<div v-for="product in page.data" class="mingxing fl mb20" style="border:2px solid #fff;width:230px;cursor:pointer;" onmouseout="this.style.border='2px solid #fff'" onmousemove="this.style.border='2px solid red'">
+					<div class="sub_mingxing">
+						<a :href="'goods-info.html?pid='+product.id"  target="_self"><img :src="imageServerPath+product.image" alt=""></a>
+					</div>
+					<div class="pinpai">
+						<a :href="'goods-info.html?pid='+product.id" target="_self">{{product.title}}</a>
+					</div>
+					<div class="youhui" v-html="product.sellPoint"></div>
+					<div class="jiage">{{product.price}}元</div>
+				</div>
+				<div class="clear"></div>
+			</div>
+
+			<nav aria-label="Page navigation" style="text-align: center;">
+				<ul class="pagination">
+					<li v-for="pageNo in page.pageCount" :class="curPage==pageNo?'active':''" @click="changePage(pageNo)">
+						<a href="javaScript:void(0)">{{pageNo}}</a>
+					</li>
+				</ul>
+			</nav>
+
+		</div>
+		<!-- end danpin -->
+
+	</body>
+	<script>
+		layui.use("layer", function(layer) {
+			//获取地址栏中的请求参数
+			var params = getUrlParams();
+			//对其中的q参数进行解码后传递
+			if(params.q) {
+				params.q = decodeURI(params.q);
+			}
+
+			var pageVm = new Vue({
+				el: ".page",
+				data: {
+					page: {},
+					imageServerPath: imageServerPath,
+					curPage: 1
+				},
+				methods: {
+					changePage: function(pageNo) {
+						this.curPage = pageNo;
+					}
+				},
+				watch: {
+					//监听curPage的变化
+					curPage: function(pageNo) {
+						params.pageNo = pageNo;
+						getProducts();
+					}
+				}
+			});
+
+			function getProducts() {
+				//通过Ajax获取请求参数对应条件的商品信息
+				$.ajax({
+					type: "get",
+					url: serverPath + "/product/conditions",
+					data: params,
+					success: function(res) {
+						if(!res.success) {
+							layer.alert("搜索失败");
+						} else {
+							pageVm.page = res.data;
+						}
+					}
+				});
+			}
+			getProducts();
+
+		});
+	</script>
+
+</html>

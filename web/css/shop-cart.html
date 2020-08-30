@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="order by dede58.com" />
+		<title>老司机商城-我的购物车</title>
+		<link rel="stylesheet" type="text/css" href="./css/style.css">
+		<link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css" />
+		<script type="text/javascript" src="js/jquery1.9.1.js"></script>
+		<script type="text/javascript" src="js/category.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.js"></script>
+
+	</head>
+
+	<body onload="loadHead()">
+		<div class="xiantiao"></div>
+		<div class="gwcxqbj cart-info">
+			<div class="gwcxd center">
+				<div class="top2 center">
+					<div class="sub_top fl">
+						<input type="checkbox" value="quanxuan" class="quanxuan" />全选
+					</div>
+					<div class="sub_top fl">商品名称</div>
+					<div class="sub_top fl">单价</div>
+					<div class="sub_top fl">数量</div>
+					<div class="sub_top fl">小计</div>
+					<div class="sub_top fr">操作</div>
+					<div class="clear"></div>
+				</div>
+				<div class="content2 center" v-for="cartItem in cartItems">
+					<div class="sub_content fl ">
+						<input type="checkbox" class="quanxuan" v-model="pids" :value="cartItem.pid"/>
+					</div>
+					<div class="sub_content fl"><img :src="imageServerPath+cartItem.image" width="100"></div>
+					<div class="sub_content fl ft20" style="overflow: hidden;text-overflow:ellipsis;white-space: nowrap;" :title="cartItem.productName">{{cartItem.productName}}</div>
+					<div class="sub_content fl ">{{cartItem.price}}元</div>
+					<div class="sub_content fl">
+						<input class="shuliang" type="number" :value="cartItem.count" step="1" min="1" @change="changeCount(cartItem.pid,$event)">
+					</div>
+					<div class="sub_content fl">{{cartItem.price*cartItem.count}}元</div>
+					<div class="sub_content fl">
+						<a href="javascript:void(0);">×</a>
+					</div>
+					<div class="clear"></div>
+				</div>
+
+			</div>
+			<div class="jiesuandan mt20 center">
+				<div class="tishi fl ml20">
+					<ul>
+						<li>
+							<a href="index.html">继续购物</a>
+						</li>
+						<li>
+							<a href="index.html">清空购物车</a>
+						</li>
+						<li>|</li>
+						<li>共<span>1</span>件商品，已选择<span>1</span>件</li>
+						<div class="clear"></div>
+					</ul>
+				</div>
+				<div class="jiesuan fr">
+					<div class="jiesuanjiage fl">合计（不含运费）：<span>{{totalPrice}}元</span></div>
+					<div class="jsanniu fr"><input class="jsan" type="submit" name="jiesuan" value="去结算" @click="generateOrder"/></div>
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</div>
+
+		</div>
+	</body>
+	<script>
+		layui.use("layer", function(layer) {
+			
+			$.get(serverPath + "/user/loginUser", function(res) {
+				if(!res.success) {
+					location.href = "login.html";
+				}
+			});
+
+			var shopCartVm=new Vue({
+				el:".cart-info",
+				data:{
+					cartItems:[],
+					imageServerPath:imageServerPath,
+					pids:[]
+				},
+				//计算属性
+				computed:{
+					//计算总价
+					totalPrice:function(){
+						var totalPrice=0;
+						var cartItems=this.cartItems;
+						$.each(cartItems, function(index,cartItem) {
+							var price=cartItem.price;
+							var count=cartItem.count;
+							totalPrice+=price*count;
+						});
+						return totalPrice;
+					}
+				},
+				methods:{
+					//改变数量的操作
+					changeCount:function(pid,e){
+						var count=e.target.value;
+						//将新的数量更新到cartItems响应式属性中，使得数组发生变化
+						//然后所有与之关联的属性也会一起发生变化
+						var cartItems=this.cartItems;
+						$.each(cartItems,function(index,cartItem){
+							if(cartItem.pid==pid){
+								cartItem.count=count;
+							}
+						});
+						this.cartItems=cartItems;
+						//对Redis中的数量进行改变
+						$.ajax({
+							type:"post",
+							url:serverPath+"/cart/changeCount",
+							data:{
+								pid:pid,
+								count:count
+							},
+							success:function(res){
+								if(!res.success){
+									layer.alert("修改数量失败");
+								}
+							}
+						});
+					},
+					//生成订单（结算操作）
+					generateOrder:function(){
+						//将当前选择的商品的id发送到服务端
+						//1.服务端获取选中的商品id列表
+						
+						//2.根据商品id的列表到Redis中查询每件商品当前用户购买的数量
+						
+						//3.根据Redis中的商品数量来生成订单信息
+						//(1)在服务器端构造能够在页面中显示的订单商品的数据
+						//(2)在数据库中保存订单的基本信息以及订单中的商品的信息
+						//(3)删除Redis中对应的选中的这些购物车中的数据
+						var pids=this.pids;
+						if(pids.length==0){
+							layer.alert("下单之前请先选择商品");
+							return;
+						}
+						$.ajax({
+							type:"post",
+							url:serverPath+"/order/generate",
+							data:{
+								pids:pids
+							},
+							success:function(res){
+								if(res.success){
+									location.href="submit-order.html?oid="+res.data;
+								}else{
+									layer.alert(res.errMsg);
+								}
+							}
+						});
+					}
+				}
+			});
+
+			//获取购物车中的数据
+			$.ajax({
+				type: "get",
+				url: serverPath + "/cart/get",
+				success: function(res) {
+					if(!res.success){
+						layer.alert(res.errMsg);
+					}else{
+						shopCartVm.cartItems=res.data;
+					}
+				}
+			});
+		});
+	</script>
+
+</html>
